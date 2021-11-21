@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Melody App</string>
+    <string name="fetch_music">Fetch User</string>
+    <string name="action_analysis">분석</string>
+    <string name="action_detail">상세정보</string>
+    <string name="action_remove">삭제</string>
+</resources>
