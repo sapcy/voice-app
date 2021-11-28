@@ -3,9 +3,11 @@ package com.sychoi.melodyapp.ui.main.fragment
 import android.Manifest
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
+import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.media.MediaRecorder
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -16,6 +18,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -32,8 +35,18 @@ import com.sychoi.melodyapp.ui.main.viewstate.RecordState
 import com.sychoi.melodyapp.util.ViewModelFactory
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okio.BufferedSink
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStream
+import java.net.URL
+import android.os.ParcelFileDescriptor
+
+
+
 
 class RecordFragment : Fragment(R.layout.fragment_record) {
     private lateinit var mainActivity: MainActivity
@@ -60,28 +73,47 @@ class RecordFragment : Fragment(R.layout.fragment_record) {
         mainActivity = context as MainActivity
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentRecordBinding.bind(view)
 
         setupViewModel()
         observeViewModel(binding)
+        ///
 
+        var fileName: String = "sample_audio2323.mp3"
+
+        val audiouri: Uri
+        val file: ParcelFileDescriptor
         mediaRecorder = MediaRecorder()
 
-//        val context = this.context
-//        var audioDir: String = ""
-//        if (context != null) {
-//            audioDir = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "AudioMemos").absolutePath
-//        }
+        val values = ContentValues(4)
+        values.put(MediaStore.Audio.Media.TITLE, fileName)
+        values.put(
+            MediaStore.Audio.Media.DATE_ADDED,
+            (System.currentTimeMillis() / 1000).toInt()
+        )
+        values.put(MediaStore.Audio.Media.MIME_TYPE, "audio/mp3")
+        values.put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/Recordings/")
 
-//        output = audioDir + "/sample_record.mp3"
-        output = "${requireActivity().externalCacheDir?.absolutePath}" + "/sample_record.mp3"
-        Log.d("OUTPUT PATH", output!!)
-        mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
-        mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-        mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-        mediaRecorder?.setOutputFile(output)
+        audiouri = mainActivity.getContentResolver().insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values)!!
+        file = mainActivity.getContentResolver().openFileDescriptor(audiouri, "w")!!
+
+        if (file != null) {
+            mediaRecorder!!.setAudioSource(MediaRecorder.AudioSource.MIC)
+            mediaRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            mediaRecorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            mediaRecorder!!.setOutputFile(file.getFileDescriptor())
+            mediaRecorder!!.setAudioChannels(1)
+        }
+
+//        output = "${requireActivity().externalCacheDir?.absolutePath}" + "/sample_record.mp3"
+        Log.d("OUTPUT PATH", file.getFileDescriptor().toString())
+//        mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
+//        mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+//        mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+//        mediaRecorder?.setOutputFile(output)
 
         binding.btnStartRecording.setOnClickListener {
             if (ContextCompat.checkSelfPermission(mainActivity,
@@ -184,7 +216,7 @@ class RecordFragment : Fragment(R.layout.fragment_record) {
         lifecycleScope.launch {
             recordViewModel.state.collect {
                 when (it) {
-                    is RecordState.Idle -> {
+                     is RecordState.Idle -> {
                         binding.btnPauseRecording.visibility = View.GONE
                         binding.btnStopRecording.visibility = View.GONE
                         binding.btnStartRecording.visibility = View.VISIBLE
