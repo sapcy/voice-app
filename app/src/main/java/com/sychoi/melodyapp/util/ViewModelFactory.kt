@@ -8,7 +8,7 @@ import com.sychoi.melodyapp.ui.main.viewmodel.RecordViewModel
 import com.sychoi.melodyapp.ui.main.viewmodel.VoiceViewModel
 
 class ViewModelFactory(private val apiHelper: ApiHelper) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(VoiceViewModel::class.java)) {
             return VoiceViewModel(MainRepository(apiHelper)) as T
         } else if (modelClass.isAssignableFrom(RecordViewModel::class.java)) {
