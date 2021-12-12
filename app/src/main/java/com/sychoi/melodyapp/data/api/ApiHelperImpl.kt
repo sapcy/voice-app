@@ -6,6 +6,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.http.Part
+import retrofit2.http.PartMap
 
 class ApiHelperImpl(private val apiService: ApiService) : ApiHelper {
     override suspend fun getVoices(): List<Voice> {
@@ -16,7 +17,7 @@ class ApiHelperImpl(private val apiService: ApiService) : ApiHelper {
         TODO("Not yet implemented")
     }
 
-    override fun upload(image: MultipartBody.Part, desc: RequestBody): Call<UploadResponse> {
-        return apiService.uploadImage(image, desc)
+    override suspend fun upload(voiceMap: HashMap<String?, RequestBody?>, file: MultipartBody.Part, desc: RequestBody): Call<UploadResponse> {
+        return apiService.uploadImage(voiceMap, file, desc)
     }
 }

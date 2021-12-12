@@ -28,7 +28,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 //@ExperimentalCoroutinesApi
-class AnalysisFragment : Fragment(R.layout.fragment_analysis), UploadRequestBody.UploadCallback {
+class AnalysisFragment : Fragment(R.layout.fragment_analysis) {
     private lateinit var mainActivity: MainActivity
     private lateinit var binding: FragmentAnalysisBinding
     private var selectedImageUri: Uri? = null
@@ -52,85 +52,85 @@ class AnalysisFragment : Fragment(R.layout.fragment_analysis), UploadRequestBody
 
         binding = FragmentAnalysisBinding.bind(view)
 
-        binding.ivTabImage .setOnClickListener {
-            openImageChooser()
-        }
-
-        binding.btnUpload.setOnClickListener {
-            uploadFile()
-        }
+//        binding.ivTabImage .setOnClickListener {
+//            openImageChooser()
+//        }
+//
+//        binding.btnUpload.setOnClickListener {
+//            uploadFile()
+//        }
     }
 
-    private fun openImageChooser() {
-        Intent().also {
-//            it.type = "image/*"
-            it.type = "audio/*"
-            it.action = Intent.ACTION_GET_CONTENT
-//            val mimeTypes = arrayOf("image/jpeg", "image/png")
-//            it.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes)
-            startActivityForResult(Intent.createChooser(it, "Get Image"), REQUEST_CODE_PICK_IMAGE)
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK) {
-            when (requestCode) {
-                REQUEST_CODE_PICK_IMAGE -> {
-                    selectedImageUri = data?.data
-                    binding.ivTabImage.setImageURI(selectedImageUri)
-                }
-            }
-        }
-    }
-
-    private fun uploadFile() {
-        if (selectedImageUri == null) {
-            binding.fragmentAnalysis.snackbar("Select an File First")
-            return
-        }
-
-        val parcelFileDescriptor =
-            mainActivity.contentResolver.openFileDescriptor(selectedImageUri!!, "r", null) ?: return
-
-        val inputStream = FileInputStream(parcelFileDescriptor.fileDescriptor)
-        val file = File(mainActivity.cacheDir, mainActivity.contentResolver.getFileName(selectedImageUri!!))
-        val outputStream = FileOutputStream(file)
-        inputStream.copyTo(outputStream)
-
-        binding.progressBar.progress = 0
-        val body = UploadRequestBody(file, "audio", this)
-        apiHelper.upload(
-            MultipartBody.Part.createFormData(
-                "file",
-                file.name,
-                body
-            ),
-            RequestBody.create(MediaType.parse("multipart/form-data"), "json")
-        ).enqueue(object : Callback<UploadResponse> {
-            override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
-                binding.fragmentAnalysis.snackbar(t.message!!)
-                binding.progressBar.progress = 0
-            }
-
-            override fun onResponse(
-                call: Call<UploadResponse>,
-                response: Response<UploadResponse>
-            ) {
-                response.body()?.let {
-                    binding.fragmentAnalysis.snackbar(it.message)
-                    binding.progressBar.progress = 100
-                }
-            }
-        })
-
-    }
-
-    override fun onProgressUpdate(percentage: Int) {
-        binding.progressBar.progress = percentage
-    }
-
-    companion object {
-        const val REQUEST_CODE_PICK_IMAGE = 101
-    }
+//    private fun openImageChooser() {
+//        Intent().also {
+////            it.type = "image/*"
+//            it.type = "audio/*"
+//            it.action = Intent.ACTION_GET_CONTENT
+////            val mimeTypes = arrayOf("image/jpeg", "image/png")
+////            it.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes)
+//            startActivityForResult(Intent.createChooser(it, "Get Image"), REQUEST_CODE_PICK_IMAGE)
+//        }
+//    }
+//
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//        if (resultCode == Activity.RESULT_OK) {
+//            when (requestCode) {
+//                REQUEST_CODE_PICK_IMAGE -> {
+//                    selectedImageUri = data?.data
+//                    binding.ivTabImage.setImageURI(selectedImageUri)
+//                }
+//            }
+//        }
+//    }
+//
+//    private fun uploadFile() {
+//        if (selectedImageUri == null) {
+//            binding.fragmentAnalysis.snackbar("Select an File First")
+//            return
+//        }
+//
+//        val parcelFileDescriptor =
+//            mainActivity.contentResolver.openFileDescriptor(selectedImageUri!!, "r", null) ?: return
+//
+//        val inputStream = FileInputStream(parcelFileDescriptor.fileDescriptor)
+//        val file = File(mainActivity.cacheDir, mainActivity.contentResolver.getFileName(selectedImageUri!!))
+//        val outputStream = FileOutputStream(file)
+//        inputStream.copyTo(outputStream)
+//
+//        binding.progressBar.progress = 0
+//        val body = UploadRequestBody(file, "audio", this)
+//        apiHelper.upload(
+//            MultipartBody.Part.createFormData(
+//                "file",
+//                file.name,
+//                body
+//            ),
+//            RequestBody.create(MediaType.parse("multipart/form-data"), "json")
+//        ).enqueue(object : Callback<UploadResponse> {
+//            override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
+//                binding.fragmentAnalysis.snackbar(t.message!!)
+//                binding.progressBar.progress = 0
+//            }
+//
+//            override fun onResponse(
+//                call: Call<UploadResponse>,
+//                response: Response<UploadResponse>
+//            ) {
+//                response.body()?.let {
+//                    binding.fragmentAnalysis.snackbar(it.message)
+//                    binding.progressBar.progress = 100
+//                }
+//            }
+//        })
+//
+//    }
+//
+//    override fun onProgressUpdate(percentage: Int) {
+//        binding.progressBar.progress = percentage
+//    }
+//
+//    companion object {
+//        const val REQUEST_CODE_PICK_IMAGE = 101
+//    }
 }
